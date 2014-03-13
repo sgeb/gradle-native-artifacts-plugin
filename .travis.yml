@@ -2,3 +2,4 @@ language: groovy
 branches:
   only:
     - master
+script: "./gradlew --no-color -q test"
