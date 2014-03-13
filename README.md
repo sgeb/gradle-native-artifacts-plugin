@@ -91,12 +91,14 @@ executables {
     tastyApp {
         binaries.all {
             lib libraries.libA.static
+            linker.args "-lboost"
         }
     }
 
     tastyAppTest {
         binaries.all {
             lib libraries.libA.static
+            linker.args "-lboost", "-lgtest"
         }
     }
 }
