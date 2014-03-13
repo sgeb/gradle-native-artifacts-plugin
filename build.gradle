@@ -1,0 +1,147 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+group = 'me.sgeb.gradle'
+version = '1.0.0'
+
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+
+    testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Native Artifacts Plugin',
+                'Implementation-Version': version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                'Built-Gradle': gradle.gradleVersion
+    }
+}
+
+ext.pomConfiguration = {
+    project {
+        name 'Gradle Native Artifacts Plugin'
+        description 'Gradle plugin to package executables and libraries into ' +
+                'native artifacts publishable to Ivy or Maven.'
+        url 'https://github.com/sgeb/gradle-native-artifacts-plugin'
+        inceptionYear '2014'
+
+        scm {
+            url 'https://github.com/sgeb/gradle-native-artifacts-plugin'
+            connection 'scm:git:https://github.com/sgeb/gradle-native-artifacts-plugin.git'
+            developerConnection 'scm:git:https://github.com/sgeb/gradle-native-artifacts-plugin.git'
+        }
+
+        licenses {
+            license {
+                name 'The MIT License'
+                url 'http://www.opensource.org/licenses/mit-license.php'
+                distribution 'repo'
+            }
+        }
+
+        developers {
+            developer {
+                id 'sgeb'
+                name 'Serge Gebhardt'
+            }
+        }
+    }
+}
+
+task groovydocJar(type: Jar, dependsOn: groovydoc) {
+    classifier = 'javadoc'
+    from groovydoc.destinationDir
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives groovydocJar
+    archives sourcesJar
+}
+
+signing {
+    required { gradle.taskGraph.hasTask("uploadArchives") ||
+            gradle.taskGraph.hasTask("install") }
+    sign configurations.archives
+}
+
+// GRADLE-1285 - workaround to get <packaging>jar</packaging>
+//               into the pom file
+def pomPackagingElement = { root ->
+    def children = root.asNode().children()
+    def versionIndex = children.indexOf(children.find {it.name().localPart == 'version'})
+    children.add(versionIndex + 1, new Node(null, 'packaging', 'jar'))
+}
+
+install {
+    repositories {
+        mavenInstaller {
+            beforeDeployment { mavenDeployment ->
+                signing.signPom(mavenDeployment)
+            }
+
+            pom(pomConfiguration)
+
+            pom.withXml pomPackagingElement
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { mavenDeployment ->
+                signing.signPom(mavenDeployment)
+            }
+
+            def repositoryUsername = project.hasProperty('nexusUsername') ? nexusUsername : ''
+            def repositoryPassword = project.hasProperty('nexusPassword') ? nexusPassword : ''
+
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
+                authentication(userName: repositoryUsername, password: repositoryPassword)
+            }
+
+            pom(pomConfiguration)
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.11'
+}
+
+tasks['uploadArchives'].mustRunAfter tasks.withType(Test)
+
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(':uploadArchives'))
+    {
+        if (!taskGraph.hasTask(':test'))
+        {
+            throw new StopExecutionException('Test task must be run for releases that ' +
+                    'will be uploaded.')
+        }
+
+        if (!project.hasProperty('nexusUsername') || !project.hasProperty('nexusPassword'))
+        {
+            throw new StopExecutionException('To upload archives you must provide your ' +
+                    'nexusUsername and nexusPassword as properties.')
+        }
+    }
+}
