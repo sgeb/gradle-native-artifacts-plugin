@@ -60,8 +60,7 @@ class ExtractNarDepsTaskCreator extends ModelRule {
     }
 
     static String getNarDepsDirName(ProjectNativeBinary binary) {
-        def depsConfName = ConfigurationCreator.getConfigurationName(binary)
-        return "$NAR_EXTRACT_PATH/$depsConfName"
+        return "$NAR_EXTRACT_PATH/$binary.narConfName"
     }
 
     private static String getExtractNarDepsTaskName(ProjectNativeBinaryInternal binary) {

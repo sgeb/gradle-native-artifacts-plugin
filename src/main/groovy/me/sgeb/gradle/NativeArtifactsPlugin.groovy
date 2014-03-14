@@ -14,7 +14,6 @@ import org.gradle.nativebinaries.ExecutableContainer
 import org.gradle.nativebinaries.LibraryContainer
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 
 import javax.inject.Inject
@@ -54,6 +53,7 @@ class NativeArtifactsPlugin implements Plugin<Project> {
         )
         whenExecutableOrLibraryAdded { confCreator.createFor(it) }
 
+        setNarConfName()
         setNarDepsDir()
         modelRules.rule(new BuildNarTaskCreator(nativeComponents, project.tasks, project.configurations))
         modelRules.rule(new ExtractNarDepsTaskCreator(project))
@@ -66,11 +66,19 @@ class NativeArtifactsPlugin implements Plugin<Project> {
                 new ClosureBackedAction<LibraryContainer>({ it.whenObjectAdded(closure) }))
     }
 
-    private void setNarDepsDir() {
-        // Need to add narDepsDir through project.{executables,libraries} instead
-        // of project.binaries otherwise it would only be accessible after executables
-        // and libraries blocks have been closed
+    private void setNarConfName() {
+        def narConfNameClosure = { ProjectNativeComponent component ->
+            component.binaries.all { ProjectNativeBinary binary ->
+                binary.ext.narConfName = ConfigurationCreator.getConfigurationName(binary)
+            }
+        }
 
+        // Cannot use project.binaries, see setNarDepsDir
+        project.executables.all(narConfNameClosure)
+        project.libraries.all(narConfNameClosure)
+    }
+
+    private void setNarDepsDir() {
         def narDepsDirClosure = { ProjectNativeComponent component ->
             component.binaries.all { ProjectNativeBinary binary ->
                 def depsDirName = ExtractNarDepsTaskCreator.getNarDepsDirName(binary)
@@ -78,6 +86,9 @@ class NativeArtifactsPlugin implements Plugin<Project> {
             }
         }
 
+        // Need to add narDepsDir through project.{executables,libraries} instead
+        // of project.binaries otherwise it would only be accessible after executables
+        // and libraries blocks have been closed
         project.executables.all(narDepsDirClosure)
         project.libraries.all(narDepsDirClosure)
     }

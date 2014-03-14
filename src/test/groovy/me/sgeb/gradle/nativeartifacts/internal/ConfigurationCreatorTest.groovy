@@ -118,6 +118,27 @@ class ConfigurationCreatorTest extends Specification {
         one(project.configurations.findByName("compileCliOsx-amd64ReleaseFrench")?.extendsFrom) == project.configurations["compileCliOsx-amd64Release"]
     }
 
+    void 'sets narConfName on binaries'() {
+        given:
+        project.configure(project) {
+            executables {
+                anExe
+            }
+
+            libraries {
+                aLib
+            }
+        }
+
+        when:
+        project.evaluate()
+
+        then:
+        project.binaries.all {
+            it.narConfName =~ "compile(AnExe|ALib).+"
+        }
+    }
+
     //////////////////////////////////////////////////////////////////////////
 
     def toolChainAny(String name) {
