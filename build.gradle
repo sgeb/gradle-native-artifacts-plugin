@@ -33,8 +33,9 @@ jar {
 ext.pomConfiguration = {
     project {
         name 'Gradle Native Artifacts Plugin'
-        description 'Gradle plugin to package executables and libraries into ' +
-                'native artifacts publishable to Ivy or Maven.'
+        description 'A gradle plugin to package C/C++ native executables and ' +
+                'libraries into artifacts publishable to Ivy or Maven, with ' +
+                'support for transitive dependencies.'
         url 'https://github.com/sgeb/gradle-native-artifacts-plugin'
         inceptionYear '2014'
 

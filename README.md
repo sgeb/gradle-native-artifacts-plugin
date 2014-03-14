@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/sgeb/gradle-native-artifacts-plugin.png?branch=master)](https://travis-ci.org/sgeb/gradle-native-artifacts-plugin)
 
-A gradle plugin to package native executables and libraries into artifacts
+A gradle plugin to package C/C++ native executables and libraries into artifacts
 publishable to Ivy or Maven, with support for transitive dependencies.
 
 ## When is this plugin useful?
