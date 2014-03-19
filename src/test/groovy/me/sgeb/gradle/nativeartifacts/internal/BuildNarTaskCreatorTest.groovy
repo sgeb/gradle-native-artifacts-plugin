@@ -79,8 +79,8 @@ class BuildNarTaskCreatorTest extends Specification {
         project.evaluate()
 
         then:
-        with (one(nativeComponent.artifacts).archiveTask.rootSpec){
-            destPath.pathString == 'bin'
+        with (one(nativeComponent.artifacts).archiveTask.rootSpec.children[0]) {
+            children*.destPath.pathString.flatten() == ['bin']
             children*.sourcePaths.flatten() == anExecutable.binaries*.primaryOutput
         }
     }
@@ -91,13 +91,16 @@ class BuildNarTaskCreatorTest extends Specification {
         project.evaluate()
 
         then:
-        nativeComponent.artifacts.all { archiveTask.rootSpec.destPath.pathString == 'lib' }
+        nativeComponent.artifacts.all {
+            assert archiveTask.rootSpec.children[0].children[0].destPath.pathString == 'lib'
+            assert archiveTask.rootSpec.children[0].children[1].destPath.pathString == 'include'
+        }
         nativeComponent.artifacts.matching { it.archiveTask.name =~ /StaticLibrary/ }.all {
-            archiveTask.rootSpec.children*.sourcePaths.flatten() ==
+            assert archiveTask.rootSpec.children[0].children[0].sourcePaths.toArray() ==
                     aLibrary.binaries.withType(StaticLibraryBinary).primaryOutput
         }
         nativeComponent.artifacts.matching { it.archiveTask.name =~ /SharedLibrary/ }.all {
-            archiveTask.rootSpec.children*.sourcePaths.flatten() ==
+            assert archiveTask.rootSpec.children[0].children[0].sourcePaths.toArray() ==
                     aLibrary.binaries.withType(SharedLibraryBinary).primaryOutput
         }
     }

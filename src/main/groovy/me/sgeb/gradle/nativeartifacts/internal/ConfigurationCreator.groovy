@@ -63,7 +63,7 @@ class ConfigurationCreator {
         params.addAll(objects.grep { !(it.name in ["default", "current"]) }*.name)
 
         new DefaultBinaryNamingScheme(null, null, new LinkedList<String>())
-                .makeName params.toArray(new String[objects.size()]) as String[]
+                .makeName(params.toArray(new String[objects.size()]) as String[])
     }
 
     // Evaluated at creation time, hence when platforms/buildTypes/flavors have

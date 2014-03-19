@@ -112,13 +112,7 @@ uploadArchives {
                 signing.signPom(mavenDeployment)
             }
 
-            def repositoryUsername = project.hasProperty('nexusUsername') ? nexusUsername : ''
-            def repositoryPassword = project.hasProperty('nexusPassword') ? nexusPassword : ''
-
-            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
-                authentication(userName: repositoryUsername, password: repositoryPassword)
-            }
-
+            repository(url: "file://$rootDir/../maven_repo")
             pom(pomConfiguration)
         }
     }
@@ -137,12 +131,6 @@ gradle.taskGraph.whenReady { taskGraph ->
         {
             throw new StopExecutionException('Test task must be run for releases that ' +
                     'will be uploaded.')
-        }
-
-        if (!project.hasProperty('nexusUsername') || !project.hasProperty('nexusPassword'))
-        {
-            throw new StopExecutionException('To upload archives you must provide your ' +
-                    'nexusUsername and nexusPassword as properties.')
         }
     }
 }

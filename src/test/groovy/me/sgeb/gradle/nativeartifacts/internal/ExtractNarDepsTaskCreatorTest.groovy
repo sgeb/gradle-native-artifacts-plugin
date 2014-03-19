@@ -83,7 +83,7 @@ class ExtractNarDepsTaskCreatorTest extends Specification {
 
         then:
         project.binaries.all {
-            it.narDepsDir =~ "$project.buildDir/nar-dependencies/.+"
+            assert it.narDepsDir =~ "$project.buildDir/nar-dependencies/.+"
         }
     }
 

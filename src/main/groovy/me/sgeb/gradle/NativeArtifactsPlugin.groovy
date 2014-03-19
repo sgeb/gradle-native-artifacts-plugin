@@ -87,8 +87,8 @@ class NativeArtifactsPlugin implements Plugin<Project> {
         }
 
         // Need to add narDepsDir through project.{executables,libraries} instead
-        // of project.binaries otherwise it would only be accessible after executables
-        // and libraries blocks have been closed
+        // of project.binaries otherwise it would only be accessible inside
+        // the binaries block (and not inside executables and libraries blocks)
         project.executables.all(narDepsDirClosure)
         project.libraries.all(narDepsDirClosure)
     }

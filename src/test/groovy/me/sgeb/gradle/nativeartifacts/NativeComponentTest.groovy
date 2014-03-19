@@ -140,9 +140,9 @@ class NativeComponentTest extends Specification {
         then:
         nativeComponent.usages.size() == nativeComponent.artifacts.size()
         nativeComponent.usages.each { Usage usage ->
-            nativeComponent.artifacts.contains(one(usage.artifacts))
-            nativeComponent.artifacts.findAll{ it.classifier == usage.name }.size() == 1
-            usage.dependencies == project.configurations.compileMyLib.allDependencies
+            assert nativeComponent.artifacts.contains(one(usage.artifacts))
+            assert nativeComponent.artifacts.findAll{ it.classifier == usage.name }.size() == 1
+            assert usage.dependencies == project.configurations.compileMyLib.allDependencies
         }
     }
 

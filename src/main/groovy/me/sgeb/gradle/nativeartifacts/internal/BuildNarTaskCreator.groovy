@@ -10,6 +10,7 @@ import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.internal.BinaryInternal
 import org.gradle.model.ModelRule
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.AbstractProjectLibraryBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 
 class BuildNarTaskCreator extends ModelRule {
@@ -46,6 +47,7 @@ class BuildNarTaskCreator extends ModelRule {
             nativeComponent.binaries.each { ProjectNativeBinaryInternal binary ->
                 def task = createBuildNarTask(binary)
                 if (binary.buildable) {
+                    narLifecycleTask.dependsOn(task)
                     nativeComponent.from(task)
                 }
             }
@@ -61,14 +63,18 @@ class BuildNarTaskCreator extends ModelRule {
             dependsOn binary.namingScheme.lifecycleTaskName
             conf configurations[ConfigurationCreator.getConfigurationName(binary)]
 
-            from binary.primaryOutput
-            into intoZipDirectory(binary)
+            from (binary.primaryOutput) {
+                into intoZipDirectory(binary)
+            }
+
+            if (binary instanceof AbstractProjectLibraryBinary) {
+                from((binary as AbstractProjectLibraryBinary).headerDirs) {
+                    into 'include'
+                }
+            }
+
             baseName = binary.component.name
             classifier = classifierForBinary(binary)
-        }
-
-        if (binary.buildable) {
-            narLifecycleTask.dependsOn narTask
         }
 
         return narTask

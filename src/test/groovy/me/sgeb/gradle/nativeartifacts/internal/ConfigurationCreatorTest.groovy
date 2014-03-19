@@ -135,7 +135,7 @@ class ConfigurationCreatorTest extends Specification {
 
         then:
         project.binaries.all {
-            it.narConfName =~ "compile(AnExe|ALib).+"
+            assert it.narConfName =~ "compile(AnExe|ALib).+"
         }
     }
 
