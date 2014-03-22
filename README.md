@@ -34,7 +34,7 @@ ways to pull in dependencies:
   libraries are already available through the standard package manager (think
   `apt-get`, `rpm`, `brew`, etc). Otherwise you'd have to compile and install
   the dependencies. There is usually no way around compiling the dependencies
-  yourself if cross-compilation is part of the mix
+  yourself if cross-compilation is part of the mix.
 
 This plugin provides a third option. It brings the convenience of dependency
 management to gradle-based C/C++ projects. Each dependency (and transitive
