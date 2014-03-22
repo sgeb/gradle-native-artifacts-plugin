@@ -124,7 +124,7 @@ model {
 
 nativeArtifacts {
     my_liba {
-        from libraries.libA { it instanceof StaticLibraryBinary }
+        from (libraries.libA) { it instanceof StaticLibraryBinary }
     }
 }
 
@@ -139,16 +139,14 @@ publishing {
 
 ## FAQ
 
-##### How do I create native artifacts from third-party libraries?
+#### How do I create native artifacts from third-party libraries?
 
 Gradle-native-artifacts-plugin publishes native artifacts from binaries built by
 Gradle. It won't build projects using other build tools such as Makefile and
 CMake.
 
 That said there is an alternative way to create native artifacts compatible with
-this plugin.
-
-The following steps describe the process of creating native artifacts:
+this plugin. The following steps describe the process:
 
 1. Download the source code
 2. Apply custom patches (optional, usually not necessary)
@@ -160,30 +158,38 @@ The following steps describe the process of creating native artifacts:
    directory (e.g. `make install`)
 6. Zip up the temporary directory into an artifact. In case you're targeting
    multiple platforms,  tag the artifact using Maven classifiers.
-7. Create or adjust the publication descriptor (usually for Maven or Ivy)
+7. Create or adjust the publication descriptor (usually specific to either Maven
+   or Ivy)
 8. Repeat steps 3-7 for each target platform
+9. Publish the result to a Maven or Ivy repository
 
-This could be done using standard bash scripting but Gradle makes it easier,
-especially when creating Maven or Ivy publications.
+This process could be implemented using standard bash scripting but Gradle makes
+it easier, especially when creating Maven or Ivy publications.
 
-I've implemented a similar workflow in
+I've built a similar workflow in
 [opencash/vendor](https://github.com/opencash/vendor), see
 [build.gradle](https://github.com/opencash/vendor/blob/master/build.gradle).
 Feel free to copy the bits relevant to your project.
 
-##### How do I cross-compile to different platforms?
+#### How do I cross-compile to different platforms?
 
-Targeting different platforms is handled by Gradle, not by this plugin. If your
-build is set up to cross-compile, gradle-native-artifacts-plugin will
-automatically include an artifact for each platform, tagged with Maven
-classifiers. The choice of target platforms can be restricted using closure
-filters, such as in this example:
+Targeting different platforms is handled by Gradle itself, not by this plugin.
+If your build is set up to cross-compile, gradle-native-artifacts-plugin will
+automatically include an artifact for each platform, tagged with
+platform-specific Maven classifiers. The choice of target platforms can be
+restricted using closure filters, such as in this example:
 
 ```groovy
 nativeArtifacts {
-    from (libraries.myLib) {
-        it.targetPlatform.operatingSystem.linux && it.targetPlatform.amd64 ||
-        it.targetPlatform.operatingSystem.macOsX
+    my_lib {
+        from (libraries.myLib) {
+            // Assuming platforms "linux-amd64" and "android-arm" have been
+            // set up in model { platforms { ... } }
+
+            it.targetPlatform.name == "linux-amd64" ||
+            it.targetPlatform.name == "android-arm" ||
+            it.targetPlatform.operatingSystem.macOsX
+        }
     }
 }
 ```
@@ -193,9 +199,9 @@ Two things to note here:
 1. The parentheses around `libraries.myLib` are mandatory.
 
     In fact the method `from()` takes two parameters: the component to package
-    and the optional closure filter. Groovy, the language on which Gradle config
-    files are built, dictates the use of parentheses around the non-closure
-    parameters in order to treat the closure itself as a parameter as well.
+    and the optional closure filter. Groovy, the language used by Gradle config
+    files, dictates the use of parentheses around the non-closure parameters in
+    order to treat the closure itself as a parameter as well.
 
     Unfortunately you won't get an error if you forget the parentheses. Instead
     the closure filter will be silently ignored.
@@ -212,11 +218,11 @@ Two things to note here:
     that binary will be included in the native artifact. Otherwise it is
     ignored.
 
-You can check an example of this in practise at
+You can find an example using at
 [opencash/libopencash](https://github.com/opencash/libopencash), see
 [build.gradle](https://github.com/opencash/libopencash/blob/master/build.gradle).
 
-##### Can additional compiler/linker flags be specified in a native artifact?
+#### Can additional compiler/linker flags be specified in a native artifact?
 
 Currently this is not supported and projects depending on native artifacts have
 to specify all relevant compilation flags themselves. This also applies to
@@ -227,10 +233,10 @@ compiler families, versions and available options. But it is a valuable feature
 and I am considering it for a future release. In the meantime it is captured in
 [issue #2](https://github.com/sgeb/gradle-native-artifacts-plugin/issues/2).
 
-##### Are there any examples or real-life projects using this plugin?
+#### Are there any examples or real-life projects using this plugin?
 
 There are no "official" examples. I have developed this plugin out of need in
-one of my own projects. Hopefully the following provide a good starting point:
+a couple of my own projects, hopefully they provide a good starting point:
 
 - [opencash/vendor](https://github.com/opencash/vendor): creates native
   artifacts from third-party libraries
