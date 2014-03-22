@@ -15,7 +15,7 @@ compile them on every developer machine.*
 In a Java project you usually pull in direct and transitive dependencies through
 Ivy and Maven. These JAR dependencies are OS and architecture agnostic because
 they run in the Java Virtual Machine. How do you achieve a similar convenience
-for native projects when dependencies *are* OS and architecture dependent?
+for native projects where dependencies are OS and architecture specific?
 
 Think of a C/C++ project that depends on a third party library (e.g.
 [Boost](http://www.boost.org/)) and on a testing framework to run unit tests
@@ -26,15 +26,15 @@ ways to pull in dependencies:
   with your code on each platform. Every initial compilation on each platform
   must build all dependencies (and potentially its transitive dependencies)
   which can take a long time for bigger libraries such as Boost. In addition it
-  is sometimes complicated to integrate external libraries into an existing
+  is not always straightforward to integrate external libraries into an existing
   build system.  Most libraries require an external setup phase and separate
   compilation steps.
 
 * Install the pre-compiled libraries into your system. If you're lucky the
   libraries are already available through the standard package manager (think
   `apt-get`, `rpm`, `brew`, etc). Otherwise you'd have to compile and install
-  the dependencies. If cross-compilation is part of the mix then there's usually
-  no way around compiling the dependencies yourself.
+  the dependencies. There is usually no way around compiling the dependencies
+  yourself if cross-compilation is part of the mix
 
 This plugin provides a third option. It brings the convenience of dependency
 management to gradle-based C/C++ projects. Each dependency (and transitive
@@ -49,13 +49,13 @@ No need to clean and rebuild a dependency; updating the version number of the
 dependency in the gradle config is enough. Dynamic version dependencies (e.g.
 "depend on the latest version of the 2.1 branch") are supported as well.
 
-Furthermore the continuous integration of different modules is greatly
-simplified as well. Imagine a CI server building `libA` on every green commit
-and publishing it to the artifact repository. A project `TastyApp` with a
-dependency on `libA` can define the dependency pointing to the latest
-integration build of `libA` (via dynamic versions described above). Thereby
-`TastyApp` is guaranteed to always be tested with the latest and greatest
-version of `libA` and can identify integration issues as early as possible.
+The continuous integration of different modules is greatly simplified as well.
+Imagine a CI server building `libA` on every green commit and publishing it to
+the artifact repository. A project `TastyApp` with a dependency on `libA` can
+define the dependency pointing to the latest integration build of `libA` (via
+dynamic versions described above). Then `TastyApp` is guaranteed to always be
+tested with the latest and greatest version of `libA` and can identify
+integration issues as early as possible.
 
 ## How?
 
